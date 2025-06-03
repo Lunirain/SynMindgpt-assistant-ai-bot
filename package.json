@@ -1,0 +1,12 @@
+{
+  "name": "gpt-assistant-fullstack-vercel",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "api/index.js",
+  "scripts": { "start": "node api/index.js" },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  }
+}
