@@ -1,20 +1,23 @@
-/* ---------- index.js  (放在 /api/index.js) ----------- */
+/*───────────────────────────────────────────────
+  智械 GPT 網頁客服　完整後端 (index.js)
+───────────────────────────────────────────────*/
 import express from 'express';
-import fetch from 'node-fetch';
-import dotenv from 'dotenv';
+import fetch    from 'node-fetch';
+import dotenv   from 'dotenv';
 dotenv.config();
 
-const app = express();
-app.use(express.json());
-
-// === 你的環境變數 ===
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;   // 已在 Vercel → Environment Variables 設定
+const app            = express();
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;   // ← Vercel > Environment Variables
 const ASSISTANT_ID   = 'asst_7F67oKHWsCHLZ4tHaNBEmJh7';
 
-// 用來暫存每個 user 的 threadId（記憶功能）
+app.use(express.json());
+
+// 使用者 id ↔︎ thread id 對照
 const userThreads = {};
 
-/** 主要 API：/api/ask  ----------------------------- */
+/*───────────────────────
+  主要 API：/api/ask
+───────────────────────*/
 app.post('/api/ask', async (req, res) => {
   const { userId, message } = req.body;
   if (!userId || !message) {
@@ -22,113 +25,127 @@ app.post('/api/ask', async (req, res) => {
   }
 
   try {
-    /* 1️⃣ 取得或建立 thread -------------------------------- */
-const threadRes = await fetch('https://api.openai.com/v1/threads', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    'OpenAI-Beta': 'assistants=v1',
-    'Content-Type': 'application/json',
-  },
-});
-const threadData = await threadRes.json();
+    /* 1️⃣ 取得（或建立）thread --------------------------------------- */
+    let threadId = userThreads[userId];
 
-if (!threadRes.ok) {
-  console.error("❌ Create thread failed:", threadData);
-  return res.status(500).json({ error: threadData });
-}
+    if (!threadId) {
+      const threadRes = await fetch('https://api.openai.com/v1/threads', {
+        method : 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'OpenAI-Beta'  : 'assistants=v1',
+          'Content-Type' : 'application/json',
+        },
+        body: JSON.stringify({})               // 建立空 thread
+      });
 
-threadId = threadData.id;
-userThreads[userId] = threadId;
-
-    /* 2️⃣ 把使用者訊息塞進 thread -------------------------- */
-    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'OpenAI-Beta': 'assistants=v1',
-        'Content-Type': 'application/json',
+      const threadData = await threadRes.json();
+      if (!threadRes.ok) {
+        console.error('❌ Create thread failed:', threadData);
+        return res.status(500).json({ error: threadData });
       }
-      body: JSON.stringify({ role: 'user', content: message }),
+
+      threadId = threadData.id;
+      userThreads[userId] = threadId;          // 記錄下來
+    }
+
+    /* 2️⃣ 把使用者訊息塞進 thread ----------------------------------- */
+    const addMsgRes = await fetch(
+      `https://api.openai.com/v1/threads/${threadId}/messages`, {
+      method : 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'OpenAI-Beta'  : 'assistants=v1',
+        'Content-Type' : 'application/json',
+      },
+      body: JSON.stringify({ role: 'user', content: message })
     });
 
-    /* 3️⃣ 觸發 Assistant run ------------------------------ */
-    const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-      method: 'POST',
+    const addMsgData = await addMsgRes.json();
+    if (!addMsgRes.ok) {
+      console.error('❌ Add message failed:', addMsgData);
+      return res.status(500).json({ error: addMsgData });
+    }
+
+    /* 3️⃣ 觸發 Assistant 回答 -------------------------------------- */
+    const runRes = await fetch(
+      `https://api.openai.com/v1/threads/${threadId}/runs`, {
+      method : 'POST',
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'OpenAI-Beta': 'assistants=v1',
-        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'OpenAI-Beta'  : 'assistants=v1',
+        'Content-Type' : 'application/json',
       },
-      body: JSON.stringify({ assistant_id: ASSISTANT_ID }),
+      body: JSON.stringify({ assistant_id: ASSISTANT_ID })
     });
+
     const runData = await runRes.json();
-    if (!runData.id) throw new Error('Failed to create run');
+    if (!runRes.ok) {
+      console.error('❌ Run failed:', runData);
+      return res.status(500).json({ error: runData });
+    }
+
     const runId = runData.id;
 
-    /* 4️⃣ 輪詢等待 Assistant 完成 -------------------------- */
+    /* 4️⃣ 輪詢等待回覆完成 ----------------------------------------- */
     let status = 'queued';
     while (status !== 'completed' && status !== 'failed') {
       await new Promise(r => setTimeout(r, 1000));
-      const statRes = await fetch(
-        `https://api.openai.com/v1/threads/${threadId}/runs/${runId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-            'OpenAI-Beta': 'assistants=v1',
-          },
-        },
-      );
-      const statJson = await statRes.json();
-      status = statJson.status;
-    }
 
-    /* 5️⃣ 取得最後一則 Assistant 訊息 ---------------------- */
-    const msgsRes = await fetch(
-      `https://api.openai.com/v1/threads/${threadId}/messages`,
-      {
+      const statusRes = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
         headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'OpenAI-Beta': 'assistants=v1',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'OpenAI-Beta'  : 'assistants=v1',
         },
-      },
-    );
-    const msgsJson = await msgsRes.json();
+      });
 
-    // 找出 role === 'assistant' 的訊息
-    const lastMessage = msgsJson.data.find(m => m.role === 'assistant');
+      const statusData = await statusRes.json();
+      status = statusData.status;
 
-    // --- 容錯抓取文字內容 ---
-    let replyText = '[⚠️ Assistant 沒有回覆]';
-    if (lastMessage?.content?.length) {
-      const textPart = lastMessage.content.find(c => c.type === 'text');
-      if (textPart?.text?.value) replyText = textPart.text.value;
-      else console.error('⚠️ Assistant 回覆格式非 text.value', lastMessage);
-    } else {
-      console.error('⚠️ Assistant 沒有 content', lastMessage);
+      if (!statusRes.ok) {
+        console.error('❌ Check run status failed:', statusData);
+        return res.status(500).json({ error: statusData });
+      }
     }
 
-    /* 6️⃣ 寫入 Google Sheet（可自行拿掉） ------------------ */
-    await fetch(
-      'https://script.google.com/macros/s/AKfycbxpd5JUJpL15JDajyzAh_TAG0s9ZxBv6PPxRVVvt0uMLUpfnc1elCSHM0Nxy84tD8Wg/exec',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: message,
-          answer: replyText,
-          timestamp: new Date().toISOString(),
-        }),
+    /* 5️⃣ 取得最新回覆 --------------------------------------------- */
+    const msgRes = await fetch(
+      `https://api.openai.com/v1/threads/${threadId}/messages`, {
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'OpenAI-Beta'  : 'assistants=v1',
       },
-    );
+    });
 
-    /* 7️⃣ 回傳給前端 -------------------------------------- */
-    return res.json({ reply: replyText });
+    const msgData = await msgRes.json();
+    if (!msgRes.ok) {
+      console.error('❌ Get messages failed:', msgData);
+      return res.status(500).json({ error: msgData });
+    }
+
+    const lastMessage = msgData.data.find(m => m.role === 'assistant');
+    const answer      = (lastMessage && lastMessage.content[0].text.value) || '⚠️ 沒有收到回覆';
+
+    /* 6️⃣ 寫入 Google Sheet ---------------------------------------- */
+    await fetch('https://script.google.com/macros/s/AKfycbxpd5JUJpL15JDajyzAh_TAG0s9ZxBv6PPxRVVvt0uMLUpfnc1elCSHM0Nxy84tD8Wg/exec', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        question  : message,
+        answer    : answer,
+        timestamp : new Date().toISOString()
+      })
+    }).catch(err => console.warn('⚠️ Google Sheet failed (可忽略):', err.message));
+
+    /* 7️⃣ 回覆前端 -------------------------------------------------- */
+    res.json({ reply: answer });
+
   } catch (err) {
-    console.error('❌ Server Error:', err);
-    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    console.error('🔥 Server Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-/* --------- 讓 Vercel Edge / Serverless 可以 default export --------- */
+/*───────────────────────────────────────────────*/
 export default app;
