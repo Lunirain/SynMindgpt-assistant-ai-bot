@@ -23,21 +23,23 @@ app.post('/api/ask', async (req, res) => {
 
   try {
     /* 1️⃣ 取得或建立 thread -------------------------------- */
-    let threadId = userThreads[userId];
-    if (!threadId) {
-      const threadRes = await fetch('https://api.openai.com/v1/threads', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'OpenAI-Beta': 'assistants=v1',
-          'Content-Type': 'application/json',
-        },
-      });
-      const threadData = await threadRes.json();
-      if (!threadData.id) throw new Error('Failed to create thread');
-      threadId = threadData.id;
-      userThreads[userId] = threadId;
-    }
+const threadRes = await fetch('https://api.openai.com/v1/threads', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+    'OpenAI-Beta': 'assistants=v1',
+    'Content-Type': 'application/json',
+  },
+});
+const threadData = await threadRes.json();
+
+if (!threadRes.ok) {
+  console.error("❌ Create thread failed:", threadData);
+  return res.status(500).json({ error: threadData });
+}
+
+threadId = threadData.id;
+userThreads[userId] = threadId;
 
     /* 2️⃣ 把使用者訊息塞進 thread -------------------------- */
     await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
@@ -46,7 +48,7 @@ app.post('/api/ask', async (req, res) => {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
         'OpenAI-Beta': 'assistants=v1',
         'Content-Type': 'application/json',
-      },
+      }
       body: JSON.stringify({ role: 'user', content: message }),
     });
 
