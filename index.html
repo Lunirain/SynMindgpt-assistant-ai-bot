@@ -29,7 +29,6 @@
   border-radius: 6px;
   padding: 0.2rem 1rem 0.6rem 1rem;
   margin: 0;
-  white-space: pre-wrap;
 }
 
 /* 清除段落和列表預設空格 */
@@ -50,9 +49,10 @@
 
 /* 回覆內容 */
 .reply-content {
-  line-height: 1.6;
-  margin: 0;
-  padding: 0;
+  white-space:pre-wrap;        /* 只在內文保留換行 */
+  line-height:1.6;
+  margin:0;
+  padding:0;
 }
 
 /* ===== 複製按鈕 ===== */
@@ -123,12 +123,12 @@ function sendMessage() {
       const reply = (data.reply || "⚠️ 沒有收到回覆").trim(); // ✅ 正確地處理回覆文字空白
       
       /* 將 reply 塞進 data-text，給按鈕統一複製用 */
-      document.getElementById("displayGPTHere").innerHTML = `
-      <div class="container-gpt">
-        <div class="reply-header">🤖 小幫手：</div>
-        <div class="reply-content">${reply}</div>
-        <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
-      </div>`; 
+     document.getElementById("displayGPTHere").innerHTML = `
+     <div class="container-gpt">
+       <div class="reply-header">🤖 小幫手：</div>
+       <div class="reply-content">${reply}</div>
+       <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
+     </div>`;
 
       document.getElementById("displayInfo").innerText = "✅ 回覆完成";
       document.getElementById("uid").value = ""; // 清空輸入
