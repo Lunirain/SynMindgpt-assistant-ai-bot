@@ -131,7 +131,7 @@ document.getElementById("uid").addEventListener("keydown", e=>{
   if(e.key==="Enter") sendMessage();
 });
 
-/* 監聽「引導問題按鈕」— 點一下直接帶入並發送 */
+/* 監聽引導問題 */
 document.querySelectorAll(".suggestion-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.getElementById("uid").value = btn.textContent;
@@ -139,15 +139,22 @@ document.querySelectorAll(".suggestion-btn").forEach(btn=>{
   });
 });
 
-/*============== 文字過濾器 ==============*/
-/* 把 **粗體**、行首 * / - / 1.、以及 【…】 引用拿掉 */
+/* ============== 過濾器 ============== */
+/* 去除 markdown 標記與雜訊 */
 function sanitize(text){
   return text
-    .replace(/【[^】]+】/g, "")      // 移除 【…】 引用
-    .replace(/\*\*(.*?)\*\*/g, "$1")// 移除 Markdown 粗體 **
-    .replace(/^\s*[*-]\s+/gm, "")   // 行首 * 或 -
-    .replace(/^\s*\d+\.\s+/gm, "")  // 行首編號 1. 2. …
-    .trim();                        // 去首尾空白
+    .replace(/【[^】]+】/g, "")      // 【...】 引用
+    .replace(/\*\*(.*?)\*\*/g, "$1")// **粗體**
+    .replace(/^\s*[*-]\s+/gm, "")   // 開頭 * 或 -
+    .replace(/^\s*\d+\.\s+/gm, "")  // 開頭數字.
+    .trim();
+}
+
+/* 保留 [文字](網址) 超連結格式 */
+function mdLinkToHtml(text){
+  return text.replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\n/g, '<br>');
 }
 
 /*================ 主流程 ================*/
@@ -155,56 +162,51 @@ function sendMessage(){
   const message = document.getElementById("uid").value.trim();
   if(!message) return alert("請輸入您的問題");
 
-  /* UI: loading */
   const btn = document.getElementById("addBtn");
   btn.disabled = true;
   btn.innerText = "查詢中…";
   document.getElementById("displayInfo").innerText = "🤖 機器人思考中…";
   document.getElementById("displayGPTHere").innerHTML = "";
 
-  /* 呼叫後端 API */
-  fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({userId,message})
+  fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, message })
   })
-  .then(res=>{
-    if(!res.ok) throw new Error("伺服器錯誤，請稍後再試");
+  .then(res => {
+    if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
     return res.json();
   })
-  .then(data=>{
-    /* 過濾回覆雜訊 */
-    const raw   = (data.reply || "⚠️ 沒有收到回覆").trim();
-    const reply = sanitize(raw);
+  .then(data => {
+    const raw = (data.reply || "⚠️ 沒有收到回覆").trim();
+    const safe = sanitize(raw);
+    const reply = mdLinkToHtml(safe);
 
-    /* 動態產出回覆卡片 */
     document.getElementById("displayGPTHere").innerHTML = `
-<div class="container-gpt">
-  <div class="reply-header">🤖 小幫手</div>
-  <div class="reply-content">${reply}</div>
-  <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
-</div>`;
-
+      <div class="container-gpt">
+        <div class="reply-header">🤖 小幫手</div>
+        <div class="reply-content">${reply}</div>
+        <button class="copy-button" data-text="${safe}">📋 複製回覆</button>
+      </div>`;
     document.getElementById("displayInfo").innerText = "✅ 回覆完成";
-    document.getElementById("uid").value = ""; // 清空輸入
+    document.getElementById("uid").value = "";
   })
-  .catch(err=>{
-    document.getElementById("displayInfo").innerText = "❌ 錯誤："+err.message;
+  .catch(err => {
+    document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
   })
-  .finally(()=>{
+  .finally(() => {
     btn.disabled = false;
     btn.innerText = "詢問";
   });
 }
 
 /*================ 複製功能 ================*/
-/* 監聽整頁；點到 .copy-button 就複製其 data-text */
-document.addEventListener("click", e=>{
-  if(e.target.classList.contains("copy-button")){
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("copy-button")) {
     const txt = e.target.dataset.text || "";
     navigator.clipboard.writeText(txt)
-      .then(()=>alert("✅ 已複製回覆內容！"))
-      .catch(()=>alert("❌ 複製失敗，可能是瀏覽器權限阻擋"));
+      .then(() => alert("✅ 已複製回覆內容！"))
+      .catch(() => alert("❌ 複製失敗，可能是瀏覽器權限阻擋"));
   }
 });
 </script>
