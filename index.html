@@ -20,7 +20,7 @@
 </head>
 <body>
 <h2> 
- <img src="/assets/logo.png" alt="logo" style="width: 24px; vertical-align: middle; margin-right: 0.5rem;">
+ <img src="/assets/logo.png" alt="logo" style="width: 96px; vertical-align: middle; margin-right: 0.5rem;">
   智械GPT客服小幫手
 </h2>
 <input id="uid" placeholder="請輸入您的問題" style="width: 70%;" type="text"/>
@@ -58,9 +58,9 @@
         const reply = data.reply || "⚠️ 沒有收到回覆";
        document.getElementById("uid").value = "";  // ✅ 清空輸入框
        document.getElementById("displayGPTHere").innerHTML = `
-  <div class="container-gpt" style="padding: 0.8rem 1rem;">
+  <div class="container-gpt" style="padding: 0.8rem 1rem; margin-top: 1rem;">
     <div style="font-size: 1.2rem; font-weight: bold; margin: 0;">🤖 小幫手：</div>
-    <div style="margin-top: 0.3rem;">${reply}</div>
+    <div style="margin-top: 0.2rem;">${reply}</div>
     <button onclick="copyText('${reply.replace(/'/g, "\\'")}')" style="margin-top: 0.8rem;">📋 複製回覆</button>
   </div>
       `;
