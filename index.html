@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>GPT 小幫手</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+<meta charset="utf-8"/>
+<title>智械GPT網頁助手</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<style>
     body { font-family: sans-serif; padding: 2rem; background: #fff6f6; }
     input, button { font-size: 1rem; padding: 0.5rem; }
     #displayInfo { margin-top: 1rem; color: gray; }
@@ -12,19 +13,18 @@
       background: #ffecec;
       padding: 1rem;
       border-left: 5px solid #ff6b6b;
-      border-radius: 4px;
+      border-radius: 8px;
       white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <h2>👩‍💻 智械 GPT 客服小幫手</h2>
-  <input type="text" id="uid" placeholder="請輸入您的問題..." style="width:60%;">
-  <button id="addBtn">詢問</button>
-  <div id="displayInfo">👉 準備就緒</div>
-  <div id="displayGPTHere" style="margin-top:1rem;"></div>
-
-  <script>
+<h2>👩‍💻 智械GPT客服小幫手</h2>
+<input id="uid" placeholder="請輸入您的問題..." style="width: 95%;" type="text"/>
+<button id="addBtn">詢問</button>
+<div id="displayInfo">👉 準備就緒</div>
+<div id="displayGPTHere" style="margin-top:1rem;"></div>
+<script>
     const userId = localStorage.getItem("gpt_user") || (() => {
       const id = "user-" + Date.now();
       localStorage.setItem("gpt_user", id);
@@ -55,7 +55,7 @@
         const reply = data.reply || "⚠️ 沒有收到回覆";
         document.getElementById("displayGPTHere").innerHTML = `
           <div class="container-gpt">
-            <b>🧠 小幫手：</b><br>${reply}
+            <b>🤖 小幫手：</b><br>${reply}
             <br><br><button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
           </div>`;
         document.getElementById("displayInfo").innerText = "✅ 回覆完成";
@@ -74,5 +74,12 @@
       alert("已複製回覆內容！");
     }
   </script>
-</body>
+<script>
+document.querySelector('button').addEventListener('click', function() {
+  const input = document.querySelector('input[type="text"]');
+  setTimeout(() => {
+    input.value = "";
+  }, 100); // 等待回覆後再清空
+});
+</script></body>
 </html>
