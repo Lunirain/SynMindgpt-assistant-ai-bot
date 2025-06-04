@@ -22,38 +22,52 @@
       color:gray;
     }
 
-   /* ===== 回覆卡片樣式 ===== */
-.container-gpt{
-  background:#ffecec;
-  border-left:5px solid #ff6b6b;
-  border-radius:6px;
-  padding:0.2rem 1rem 0.6rem 1rem;  /* 上右下左 */
-  margin:0;
-  white-space:pre-wrap;
+/* ===== 回覆卡片樣式 ===== */
+.container-gpt {
+  background: #ffecec;
+  border-left: 5px solid #ff6b6b;
+  border-radius: 6px;
+  padding: 0.2rem 1rem 0.6rem 1rem;
+  margin: 0;
+  white-space: pre-wrap;
 }
-.container-gpt *{ margin:0 }        /* 把 p / ul / ol 預設外距歸零 */
 
-.reply-header{
-  font-size:1.5rem;
-  font-weight:bold;
-  padding:0.4rem 0 0.4rem 0;        /* 上下各 0.4rem */
-  line-height:1.2;
+/* 清除段落和列表預設空格 */
+.container-gpt p,
+.container-gpt ul,
+.container-gpt ol {
+  margin: 0;
+  padding: 0;
 }
-.reply-content{ line-height:1.6; }  /* 內文行距 */
-    
-   /* ===== 複製按鈕 ===== */
-.copy-button{
-  display:inline-flex;              /* 小尺寸左靠 */
-  align-items:center;               /* 垂直置中文字與 emoji */
-  justify-content:center;           /* 水平置中 */
-  margin-top:1rem;
-  font-size:1rem;
-  line-height:1;                    /* 防 emoji 推高 */
-  padding:0.5rem 1rem;
-  border:1px solid #ccc;
-  border-radius:6px;
-  background:#f9f9f9;
-  cursor:pointer;
+
+/* 回覆標題行 */
+.reply-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 0.4rem 0 0.4rem 0;
+  line-height: 1.2;
+}
+
+/* 回覆內容 */
+.reply-content {
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== 複製按鈕 ===== */
+.copy-button {
+  display: block;          /* 占一整行 */
+  width: fit-content;      /* 寬度自適應文字大小 */
+  margin: 1rem 0 0 0;      /* 僅設定上邊距 */
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  cursor: pointer;
+  text-align: center;
 }
   </style>
 </head>
@@ -113,7 +127,8 @@ function sendMessage() {
         <div class="reply-header">🤖 小幫手：</div>
         <div class="reply-content">${reply}</div>
         <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
-      </div>`; // ← 緊貼結尾
+      </div>`; 
+      ).trim();  
       document.getElementById("displayInfo").innerText = "✅ 回覆完成";
       document.getElementById("uid").value = ""; // 清空輸入
     })
