@@ -120,7 +120,8 @@ function sendMessage() {
       return res.json();
     })
     .then(data => {
-      const reply = data.reply || "⚠️ 沒有收到回覆";
+      const reply = (data.reply || "⚠️ 沒有收到回覆").trim(); // ✅ 正確地處理回覆文字空白
+      
       /* 將 reply 塞進 data-text，給按鈕統一複製用 */
       document.getElementById("displayGPTHere").innerHTML = `
       <div class="container-gpt">
@@ -128,7 +129,7 @@ function sendMessage() {
         <div class="reply-content">${reply}</div>
         <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
       </div>`; 
-      ).trim();  
+
       document.getElementById("displayInfo").innerText = "✅ 回覆完成";
       document.getElementById("uid").value = ""; // 清空輸入
     })
