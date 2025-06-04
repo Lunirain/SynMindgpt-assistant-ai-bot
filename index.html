@@ -27,7 +27,7 @@
       background:#ffecec;
       border-left:5px solid #ff6b6b;
       border-radius:6px;
-      padding:0 1rem;          /* 上下 0、左右 1rem */
+      padding:0 1rem;    /* 上下 0、左右 1rem */
       white-space:pre-wrap;
       margin-top:1rem;
     }
@@ -35,22 +35,27 @@
       font-size:1.5rem;
       font-weight:bold;
       margin: 0; /* <<== 消除上下空白 */
-      padding-top: 0.5rem;
+      padding: 0.3rem 0 0.2rem 0; /* 上0.3rem、下0.2rem  */
+      line-height: 1.2; /* 壓低字行距 */
     }
     .reply-content{
       margin-top:0.5rem;
     }
+.copy-button {
+  margin-top: 0.8rem;
+    } 
    .container-gpt button {
-     display: block;
-     margin: 1rem auto 0;
-     width: 100%;                 /* 灰色區塊內滿寬 */
-     font-size: 1.2rem;           /* 字體大小契合 */
-     padding: 0.8rem 1rem;
-     text-align: center;          /* 讓「複製回覆」文字置中 */
-     cursor: pointer;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     margin-top: 1rem;
+     font-size: 1rem;
+     padding: 0.5rem 1rem;
      border-radius: 6px;
      border: 1px solid #ccc;
      background-color: #f9f9f9;
+     cursor: pointer;
+     text-align: center; 
     }
   </style>
 </head>
@@ -108,9 +113,7 @@ function sendMessage(){
       <div class="container-gpt">
         <div class="reply-header">🤖 小幫手：</div>
         <div class="reply-content">${reply}</div>
-        <button onclick="copyText('${reply.replace(/'/g, "\\'")}')">
-          📋 複製回覆
-        </button>
+        <button class="copy-button">📋 複製回覆</button>
       </div>`;
     document.getElementById("displayInfo").innerText = "✅ 回覆完成";
     document.getElementById("uid").value = "";   // 清空輸入
