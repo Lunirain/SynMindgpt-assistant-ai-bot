@@ -33,7 +33,7 @@
   
 <body>
   <h2>
-    <img src="images/logo.png" alt="logo" style="width: 40px; vertical-align: middle; margin-right: 0.5rem;">
+    <img src="images/logo.png" alt="logo" style="width: 70px; vertical-align: middle; margin-right: 0.5rem;">
     智械GPT客服小幫手
   </h2>
 </body>
@@ -77,13 +77,14 @@ fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
   .then(data => {
     const reply = data.reply || "⚠️ 沒有收到回覆";
     document.getElementById("displayGPTHere").innerHTML = `
-      <div class="container-gpt" style="padding-top: 0.8rem; padding-bottom: 0.8rem;">
-        <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">🤖 小幫手：</div>
-        <div style="margin-top: 0.3rem;">${reply}</div>
+      <div class="container-gpt" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">
+        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">🤖 小幫手：</div>
+        <div style="margin-top: 0.5rem;">${reply}</div>
         <br><button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
       </div>
     `;
     document.getElementById("displayInfo").innerText = "✅ 回覆完成";
+    document.getElementById("uid").value = ""; // 清空輸入框
   })
   .catch(err => {
     document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
@@ -98,13 +99,7 @@ fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
       navigator.clipboard.writeText(text);
       alert("已複製回覆內容！");
     }
-  </script>
-<script>
-document.querySelector('button').addEventListener('click', function() {
-  const input = document.querySelector('input[type="text"]');
-  setTimeout(() => {
-    input.value = "";
-  }, 100); // 等待回覆後再清空
-});
-</script></body>
+
+</script>
+</body>
 </html>
