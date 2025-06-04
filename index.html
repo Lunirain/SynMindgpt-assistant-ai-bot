@@ -22,53 +22,75 @@
       color:gray;
     }
 
-/* ===== 回覆卡片樣式 ===== */
-.container-gpt {
-  background: #ffecec;
-  border-left: 5px solid #ff6b6b;
-  border-radius: 6px;
-  padding: 0.6rem 1rem 0.8rem 1rem;
-  margin: 0;
-}
+    /* ===== 引導問題區塊 ===== */
+    .suggestions-box{
+      margin:1.5rem 0 1rem;
+      background:#fff9f0;
+      padding:1rem;
+      border-left:4px solid #fca652;
+      border-radius:8px;
+      font-size:0.95rem;
+    }
+    .suggestions-box span{
+      display:block;
+      margin-bottom:0.5rem;
+      font-weight:bold;
+      color:#333;
+    }
+    .suggestion-btn{
+      display:inline-block;
+      margin:0.25rem 0.5rem 0.25rem 0;
+      padding:0.4rem 0.8rem;
+      background:#f0f0f0;
+      border:1px solid #ccc;
+      border-radius:20px;
+      cursor:pointer;
+      font-size:0.9rem;
+      transition:background 0.2s;
+    }
+    .suggestion-btn:hover{ background:#e2e2e2; }
 
-/* 清除段落和列表預設空格 */
-.container-gpt p,
-.container-gpt ul,
-.container-gpt ol {
-  margin: 0;
-  padding: 0;
-}
-
-/* 回覆標題行 */
-.reply-header {
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding: 0.6rem 0 0.8rem 0;
-  line-height: 1.2;
-}
-
-/* 回覆內容 */
-.reply-content {
-  white-space:pre-wrap;        /* 只在內文保留換行 */
-  line-height:1.6;
-  margin:0;
-  padding:0;
-}
-
-/* ===== 複製按鈕 ===== */
-.copy-button {
-  display: block;          /* 占一整行 */
-  width: fit-content;      /* 寬度自適應文字大小 */
-  margin: 1rem 0 0 0;      /* 僅設定上邊距 */
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f9f9f9;
-  cursor: pointer;
-  text-align: center;
-}
+    /* ===== 回覆卡片樣式 ===== */
+    .container-gpt{
+      background:#ffecec;
+      border-left:5px solid #ff6b6b;
+      border-radius:6px;
+      padding:0.6rem 1rem 0.8rem 1rem;
+      margin:0;
+    }
+    /* 清除段落和列表預設空格 */
+    .container-gpt p,
+    .container-gpt ul,
+    .container-gpt ol{
+      margin:0;
+      padding:0;
+    }
+    .reply-header{
+      font-size:1.5rem;
+      font-weight:bold;
+      padding:0.6rem 0 0.8rem 0;
+      line-height:1.2;
+    }
+    .reply-content{
+      white-space:pre-wrap;    /* 只在內文保留換行 */
+      line-height:1.6;
+      margin:0;
+      padding:0;
+    }
+    /* ===== 複製按鈕 ===== */
+    .copy-button{
+      display:block;           /* 占一整行，貼左對齊 */
+      width:fit-content;
+      margin:1rem 0 0 0;
+      font-size:1rem;
+      line-height:1;
+      padding:0.5rem 1rem;
+      border:1px solid #ccc;
+      border-radius:6px;
+      background:#f9f9f9;
+      cursor:pointer;
+      text-align:center;
+    }
   </style>
 </head>
 
@@ -79,9 +101,19 @@
     智械GPT客服小幫手
   </h2>
 
+  <!-- 使用者輸入 + 送出按鈕 -->
   <input id="uid" placeholder="請輸入您的問題" style="width:70%;" type="text"/>
   <button id="addBtn">詢問</button>
 
+  <!-- 引導問題區塊 -->
+  <div id="suggestions" class="suggestions-box">
+    <span>您也可以試試問</span>
+    <button class="suggestion-btn">能做到哪些事</button>
+    <button class="suggestion-btn">想了解費用</button>
+    <button class="suggestion-btn">該怎麼開始</button>
+  </div>
+
+  <!-- 狀態列 & 回覆區 -->
   <div id="displayInfo">👉 準備就緒</div>
   <div id="displayGPTHere"></div>
 
@@ -92,9 +124,19 @@ const userId = localStorage.getItem("gpt_user") || (() => {
   localStorage.setItem("gpt_user", id);
   return id;
 })();
+
+/* 監聽送出按鈕 / Enter */
 document.getElementById("addBtn").addEventListener("click", sendMessage);
 document.getElementById("uid").addEventListener("keydown", e=>{
   if(e.key==="Enter") sendMessage();
+});
+
+/* 監聽「引導問題按鈕」— 點一下直接帶入並發送 */
+document.querySelectorAll(".suggestion-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.getElementById("uid").value = btn.textContent;
+    sendMessage();
+  });
 });
 
 /*============== 文字過濾器 ==============*/
@@ -103,15 +145,15 @@ function sanitize(text){
   return text
     .replace(/【[^】]+】/g, "")      // 移除 【…】 引用
     .replace(/\*\*(.*?)\*\*/g, "$1")// 移除 Markdown 粗體 **
-    .replace(/^\s*[*-]\s+/gm, "")   // 刪掉行首 * 或 - 清單符號
-    .replace(/^\s*\d+\.\s+/gm, "")  // 刪掉編號清單 1. 2. …
+    .replace(/^\s*[*-]\s+/gm, "")   // 行首 * 或 -
+    .replace(/^\s*\d+\.\s+/gm, "")  // 行首編號 1. 2. …
     .trim();                        // 去首尾空白
 }
 
 /*================ 主流程 ================*/
-function sendMessage() {
+function sendMessage(){
   const message = document.getElementById("uid").value.trim();
-  if (!message) return alert("請輸入您的問題");
+  if(!message) return alert("請輸入您的問題");
 
   /* UI: loading */
   const btn = document.getElementById("addBtn");
@@ -121,21 +163,21 @@ function sendMessage() {
   document.getElementById("displayGPTHere").innerHTML = "";
 
   /* 呼叫後端 API */
-  fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, message })
+  fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({userId,message})
   })
-  .then(res => {
-    if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
+  .then(res=>{
+    if(!res.ok) throw new Error("伺服器錯誤，請稍後再試");
     return res.json();
   })
-  .then(data => {
-    /* 先 trim 再過濾 → 消除空行，也移除 ** / * / - / 編號 / 【…】 */
-    const raw    = (data.reply || "⚠️ 沒有收到回覆").trim();
-    const reply  = sanitize(raw);
+  .then(data=>{
+    /* 過濾回覆雜訊 */
+    const raw   = (data.reply || "⚠️ 沒有收到回覆").trim();
+    const reply = sanitize(raw);
 
-    /* 將 reply 塞進 data-text，給按鈕統一複製用 */
+    /* 動態產出回覆卡片 */
     document.getElementById("displayGPTHere").innerHTML = `
 <div class="container-gpt">
   <div class="reply-header">🤖 小幫手</div>
@@ -146,29 +188,25 @@ function sendMessage() {
     document.getElementById("displayInfo").innerText = "✅ 回覆完成";
     document.getElementById("uid").value = ""; // 清空輸入
   })
-  .catch(err => {
-    document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
+  .catch(err=>{
+    document.getElementById("displayInfo").innerText = "❌ 錯誤："+err.message;
   })
-  .finally(() => {
+  .finally(()=>{
     btn.disabled = false;
     btn.innerText = "詢問";
   });
 }
 
 /*================ 複製功能 ================*/
-/* 監聽整頁點擊；如果點到 .copy-button 就複製其 data-text 內容 */
-document.addEventListener("click", e => {
-  if (e.target.classList.contains("copy-button")) {
-    const text = e.target.dataset.text || "";
-    copyText(text);
+/* 監聽整頁；點到 .copy-button 就複製其 data-text */
+document.addEventListener("click", e=>{
+  if(e.target.classList.contains("copy-button")){
+    const txt = e.target.dataset.text || "";
+    navigator.clipboard.writeText(txt)
+      .then(()=>alert("✅ 已複製回覆內容！"))
+      .catch(()=>alert("❌ 複製失敗，可能是瀏覽器權限阻擋"));
   }
 });
-
-function copyText(text) {
-  navigator.clipboard.writeText(text)
-    .then(() => alert("✅ 已複製回覆內容！"))
-    .catch(() => alert("❌ 複製失敗，可能是瀏覽器權限阻擋"));
-}
 </script>
 </body>
 </html>
