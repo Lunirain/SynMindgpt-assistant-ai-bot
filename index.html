@@ -58,11 +58,11 @@
         const reply = data.reply || "⚠️ 沒有收到回覆";
        document.getElementById("uid").value = "";  // ✅ 清空輸入框
        document.getElementById("displayGPTHere").innerHTML = `
-       <div class="container-gpt">
-         <div style="font-size: 1.2rem; font-weight: bold; margin: 0 0 0.2rem 0;">🤖 小幫手：</div>
-         <div style="margin: 0;">${reply}</div>
-         <button onclick="copyText('${reply.replace(/'/g, "\\'")}')" style="margin-top: 0.8rem;">📋 複製回覆</button>
-     </div>
+  <div class="container-gpt" style="padding: 0.8rem 1rem;">
+    <div style="font-size: 1.2rem; font-weight: bold; margin: 0;">🤖 小幫手：</div>
+    <div style="margin-top: 0.3rem;">${reply}</div>
+    <button onclick="copyText('${reply.replace(/'/g, "\\'")}')" style="margin-top: 0.8rem;">📋 複製回覆</button>
+  </div>
       `;
         document.getElementById("displayInfo").innerText = "✅ 回覆完成";
       })
