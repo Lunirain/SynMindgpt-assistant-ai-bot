@@ -34,19 +34,23 @@
     .reply-header{
       font-size:1.5rem;
       font-weight:bold;
-      margin:0.5rem 0;         /* 上下 0.5rem */
+      margin: 0; /* <<== 消除上下空白 */
+      padding-top: 0.5rem;
     }
     .reply-content{
       margin-top:0.5rem;
     }
-    .container-gpt button{     /* 複製按鈕置中+放大 */
-      display:block;
-      margin:1rem auto 0;
-      font-size:1.1rem;
-      padding:0.6rem 1.2rem;
-      cursor:pointer;
-      border-radius:6px;
-      border:1px solid #ccc;
+   .container-gpt button {
+     display: block;
+     margin: 1rem auto 0;
+     width: 100%;                 /* 灰色區塊內滿寬 */
+     font-size: 1.2rem;           /* 字體大小契合 */
+     padding: 0.8rem 1rem;
+     text-align: center;          /* 讓「複製回覆」文字置中 */
+     cursor: pointer;
+     border-radius: 6px;
+     border: 1px solid #ccc;
+     background-color: #f9f9f9;
     }
   </style>
 </head>
