@@ -20,10 +20,10 @@
 </head>
 <body>
 <h2> 
-  <img src="assets/logo.png" alt="logo" style="width: 24px; vertical-align: middle; margin-right: 0.5rem;">
+ <img src="./assets/logo.png" alt="logo" style="width: 24px; vertical-align: middle; margin-right: 0.5rem;">
   智械GPT客服小幫手
 </h2>
-<input id="uid" placeholder="請輸入您的問題" style="width: 85%;" type="text"/>
+<input id="uid" placeholder="請輸入您的問題" style="width: 70%;" type="text"/>
 <button id="addBtn">詢問</button>
 <div id="displayInfo">👉 準備就緒</div>
 <div id="displayGPTHere" style="margin-top:1rem;"></div>
@@ -59,9 +59,10 @@
        document.getElementById("uid").value = "";  // ✅ 清空輸入框
        document.getElementById("displayGPTHere").innerHTML = `
        <div class="container-gpt">
-       <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">🤖 小幫手：</div>
-        ${reply}
-       <br><br><button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
+       <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.2rem;">🤖 小幫手：
+       </div>
+       <div style="margin-top: 0.2rem;">${reply}</div>
+       <button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
        </div>
       `;
         document.getElementById("displayInfo").innerText = "✅ 回覆完成";
