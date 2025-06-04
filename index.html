@@ -1,105 +1,127 @@
 <!DOCTYPE html>
-
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
+  <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>智械GPT客服小幫手</title>
   <base href="https://lunirain.github.io/SynMindgpt-assistant-ai-bot/">
+
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background: #fff6f6;
+    /* ===== 全域 ===== */
+    body{
+      font-family:sans-serif;
+      padding:2rem;
+      background:#fff6f6;
     }
-    input, button {
-      font-size: 1rem;
-      padding: 0.5rem;
+    input,button{
+      font-size:1rem;
+      padding:0.5rem;
     }
-    #displayInfo {
-      margin-top: 1rem;
-      color: gray;
+    #displayInfo{
+      margin-top:1rem;
+      color:gray;
     }
-    .container-gpt {
-      background: #ffecec;
-      border-left: 5px solid #ff6b6b;
-      border-radius: 6px;
-      padding: 0.8rem 1rem;
-      white-space: pre-wrap;
-      margin-top: 1rem;
+
+    /* ===== 回覆卡片樣式 ===== */
+    .container-gpt{
+      background:#ffecec;
+      border-left:5px solid #ff6b6b;
+      border-radius:6px;
+      padding:0.5rem 1rem;     /* 想再貼一點就把 0.5rem 改更小 */
+      white-space:pre-wrap;
+      margin-top:1rem;
+    }
+    .reply-header{
+      font-size:1.5rem;        /* 標題字體大小 */
+      font-weight:bold;
+      margin-bottom:0.5rem;    /* 與內容距離 */
+    }
+    .reply-content{
+      margin-top:0.5rem;       /* 保持文字與 header 間距 */
+    }
+    .copy-btn{
+      margin-top:0.5rem;
+      padding:0.4rem 0.8rem;
+      cursor:pointer;
     }
   </style>
 </head>
-  
+
 <body>
   <h2>
-    <img src="images/logo.png" alt="logo" style="width: 70px; vertical-align: middle; margin-right: 0.5rem;">
+    <img src="images/logo.png" alt="logo"
+         style="width:70px;vertical-align:middle;margin-right:0.5rem;">
     智械GPT客服小幫手
   </h2>
-</body>
 
-<input id="uid" placeholder="請輸入您的問題" style="width: 70%;" type="text"/>
-<button id="addBtn">詢問</button>
-<div id="displayInfo">👉 準備就緒</div>
-<div id="displayGPTHere" style="margin-top:1rem;"></div>
+  <input id="uid" placeholder="請輸入您的問題" style="width:70%;" type="text"/>
+  <button id="addBtn">詢問</button>
+
+  <div id="displayInfo">👉 準備就緒</div>
+  <div id="displayGPTHere" style="margin-top:1rem;"></div>
+
 <script>
-    const userId = localStorage.getItem("gpt_user") || (() => {
-      const id = "user-" + Date.now();
-      localStorage.setItem("gpt_user", id);
-      return id;
-    })();
+/*================ 共用變數 ================*/
+const userId = localStorage.getItem("gpt_user") || (() => {
+  const id = "user-" + Date.now();
+  localStorage.setItem("gpt_user", id);
+  return id;
+})();
+document.getElementById("addBtn").addEventListener("click", sendMessage);
+document.getElementById("uid").addEventListener("keydown", e=>{
+  if(e.key==="Enter") sendMessage();
+});
 
-    document.getElementById("addBtn").addEventListener("click", sendMessage);
-    document.getElementById("uid").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") sendMessage();
-    });
+/*================ 主流程 ================*/
+function sendMessage(){
+  const message = document.getElementById("uid").value.trim();
+  if(!message) return alert("請輸入您的問題");
 
-    function sendMessage() {
-      const message = document.getElementById("uid").value.trim();
-      if (!message) return alert("請輸入您的問題");
-      
-      document.getElementById("addBtn").disabled = true;
-      document.getElementById("addBtn").innerText = "查詢中...";
-      document.getElementById("displayInfo").innerText = "🤖 機器人思考中...";
-      document.getElementById("displayGPTHere").innerHTML = "";
+  /* UI: loading */
+  const btn = document.getElementById("addBtn");
+  btn.disabled = true;
+  btn.innerText = "查詢中…";
+  document.getElementById("displayInfo").innerText = "🤖 機器人思考中…";
+  document.getElementById("displayGPTHere").innerHTML = "";
 
-fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ userId, message })
-})
-  .then(res => {
-    if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
+  /* 呼叫後端 API */
+  fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({userId,message})
+  })
+  .then(res=>{
+    if(!res.ok) throw new Error("伺服器錯誤，請稍後再試");
     return res.json();
   })
-  .then(data => {
+  .then(data=>{
     const reply = data.reply || "⚠️ 沒有收到回覆";
     document.getElementById("displayGPTHere").innerHTML = `
-      <div class="container-gpt" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">
-        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">🤖 小幫手：</div>
-        <div style="margin-top: 0.5rem;">${reply}</div>
-        <br><button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
-      </div>
-    `;
+      <div class="container-gpt">
+        <div class="reply-header">🤖 小幫手：</div>
+        <div class="reply-content">${reply}</div>
+        <button class="copy-btn" onclick="copyText('${reply.replace(/'/g, "\\'")}')">
+          📋 複製回覆
+        </button>
+      </div>`;
     document.getElementById("displayInfo").innerText = "✅ 回覆完成";
-    document.getElementById("uid").value = ""; // 清空輸入框
+    document.getElementById("uid").value = "";   // 清空輸入
   })
-  .catch(err => {
-    document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
+  .catch(err=>{
+    document.getElementById("displayInfo").innerText = "❌ 錯誤："+err.message;
   })
-  .finally(() => {
-    document.getElementById("addBtn").disabled = false;
-    document.getElementById("addBtn").innerText = "詢問";
+  .finally(()=>{
+    btn.disabled = false;
+    btn.innerText = "詢問";
   });
-    }
+}
 
-    function copyText(text) {
-      navigator.clipboard.writeText(text);
-      alert("已複製回覆內容！");
-    }
-
+/*================ 複製功能 ================*/
+function copyText(text){
+  navigator.clipboard.writeText(text)
+    .then(()=>alert("已複製回覆內容！"))
+    .catch(()=>alert("可能瀏覽器權限阻擋，複製失敗"));
+}
 </script>
 </body>
 </html>
