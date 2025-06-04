@@ -3,26 +3,39 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"/>
-<title>智械GPT網頁助手</title>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<style>
-    body { font-family: sans-serif; padding: 2rem; background: #fff6f6; }
-    input, button { font-size: 1rem; padding: 0.5rem; }
-    #displayInfo { margin-top: 1rem; color: gray; }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智械GPT客服小幫手</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #fff6f6;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    #displayInfo {
+      margin-top: 1rem;
+      color: gray;
+    }
     .container-gpt {
       background: #ffecec;
-      padding: 1rem;
       border-left: 5px solid #ff6b6b;
-      border-radius: 8px;
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
       white-space: pre-wrap;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-<h2> 
- <img src="/assets/logo.png" alt="logo" style="width: 96px; vertical-align: middle; margin-right: 0.5rem;">
-  智械GPT客服小幫手
-</h2>
+
+  <h2>
+    <img src="/assets/logo.png" alt="logo" style="width: 24px; vertical-align: middle; margin-right: 0.5rem;">
+    智械GPT客服小幫手
+  </h2>
+
 <input id="uid" placeholder="請輸入您的問題" style="width: 70%;" type="text"/>
 <button id="addBtn">詢問</button>
 <div id="displayInfo">👉 準備就緒</div>
