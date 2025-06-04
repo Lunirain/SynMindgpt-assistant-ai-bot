@@ -97,6 +97,17 @@ document.getElementById("uid").addEventListener("keydown", e=>{
   if(e.key==="Enter") sendMessage();
 });
 
+/*============== 文字過濾器 ==============*/
+/* 把 **粗體**、行首 * / - / 1.、以及 【…】 引用拿掉 */
+function sanitize(text){
+  return text
+    .replace(/【[^】]+】/g, "")      // 移除 【…】 引用
+    .replace(/\*\*(.*?)\*\*/g, "$1")// 移除 Markdown 粗體 **
+    .replace(/^\s*[*-]\s+/gm, "")   // 刪掉行首 * 或 - 清單符號
+    .replace(/^\s*\d+\.\s+/gm, "")  // 刪掉編號清單 1. 2. …
+    .trim();                        // 去首尾空白
+}
+
 /*================ 主流程 ================*/
 function sendMessage() {
   const message = document.getElementById("uid").value.trim();
@@ -115,31 +126,33 @@ function sendMessage() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, message })
   })
-    .then(res => {
-      if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
-      return res.json();
-    })
-    .then(data => {
-      const reply = (data.reply || "⚠️ 沒有收到回覆").trim(); // ✅ 正確地處理回覆文字空白
-      
-      /* 將 reply 塞進 data-text，給按鈕統一複製用 */
-     document.getElementById("displayGPTHere").innerHTML = `
-     <div class="container-gpt">
-       <div class="reply-header">🤖 小幫手</div>
-       <div class="reply-content">${reply}</div>
-       <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
-     </div>`;
+  .then(res => {
+    if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
+    return res.json();
+  })
+  .then(data => {
+    /* 先 trim 再過濾 → 消除空行，也移除 ** / * / - / 編號 / 【…】 */
+    const raw    = (data.reply || "⚠️ 沒有收到回覆").trim();
+    const reply  = sanitize(raw);
 
-      document.getElementById("displayInfo").innerText = "✅ 回覆完成";
-      document.getElementById("uid").value = ""; // 清空輸入
-    })
-    .catch(err => {
-      document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
-    })
-    .finally(() => {
-      btn.disabled = false;
-      btn.innerText = "詢問";
-    });
+    /* 將 reply 塞進 data-text，給按鈕統一複製用 */
+    document.getElementById("displayGPTHere").innerHTML = `
+<div class="container-gpt">
+  <div class="reply-header">🤖 小幫手</div>
+  <div class="reply-content">${reply}</div>
+  <button class="copy-button" data-text="${reply}">📋 複製回覆</button>
+</div>`;
+
+    document.getElementById("displayInfo").innerText = "✅ 回覆完成";
+    document.getElementById("uid").value = ""; // 清空輸入
+  })
+  .catch(err => {
+    document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.innerText = "詢問";
+  });
 }
 
 /*================ 複製功能 ================*/
