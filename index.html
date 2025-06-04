@@ -63,31 +63,35 @@
       document.getElementById("displayInfo").innerText = "🤖 機器人思考中...";
       document.getElementById("displayGPTHere").innerHTML = "";
 
-      fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, message })
-      })
-      .then(res => res.json())
-      .then(data => {
-        const reply = data.reply || "⚠️ 沒有收到回覆";
-       document.getElementById("uid").value = "";  // ✅ 清空輸入框
-       document.getElementById("displayGPTHere").innerHTML = `
-  <div class="container-gpt" style="padding: 0.8rem 1rem; margin-top: 1rem;">
-    <div style="font-size: 1.2rem; font-weight: bold; margin: 0;">🤖 小幫手：</div>
-    <div style="margin-top: 0.2rem;">${reply}</div>
-    <button onclick="copyText('${reply.replace(/'/g, "\\'")}')" style="margin-top: 0.8rem;">📋 複製回覆</button>
-  </div>
-      `;
-        document.getElementById("displayInfo").innerText = "✅ 回覆完成";
-      })
-      .catch(err => {
-        document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
-      })
-      .finally(() => {
-        document.getElementById("addBtn").disabled = false;
-        document.getElementById("addBtn").innerText = "詢問";
-      });
+fetch("https://syn-mindgpt-assistant-ai-bot.vercel.app/api/ask", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ userId, message })
+})
+  .then(res => {
+    if (!res.ok) throw new Error("伺服器錯誤，請稍後再試");
+    return res.json();
+  })
+  .then(data => {
+    const reply = data.reply || "⚠️ 沒有收到回覆";
+    document.getElementById("displayGPTHere").innerHTML = `
+      <div class="container-gpt" style="padding-top: 0.8rem; padding-bottom: 0.8rem;">
+        <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">🤖 小幫手：</div>
+        <div style="margin-top: 0.3rem;">${reply}</div>
+        <br><button onclick="copyText('${reply.replace(/'/g, "\\'")}')">📋 複製回覆</button>
+      </div>
+    `;
+    document.getElementById("displayInfo").innerText = "✅ 回覆完成";
+  })
+  .catch(err => {
+    document.getElementById("displayInfo").innerText = "❌ 錯誤：" + err.message;
+  })
+  .finally(() => {
+    document.getElementById("addBtn").disabled = false;
+    document.getElementById("addBtn").innerText = "詢問";
+  });
     }
 
     function copyText(text) {
