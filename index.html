@@ -118,6 +118,7 @@
   <div id="displayGPTHere"></div>
 
 <script>
+  
 /*================ 共用變數 ================*/
 const userId = localStorage.getItem("gpt_user") || (() => {
   const id = "user-" + Date.now();
@@ -152,15 +153,15 @@ function sanitize(text){
 
 /* 保留超連結格式 */
 function mdLinkToHtml(text){
-  // 先處理 markdown 連結格式 [文字](連結)
+  // markdown 格式：[文字](連結)
   let html = text.replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-  // 再補處理單獨裸網址
-  html = html.replace(/(?<!href=")(https?:\/\/[^\s<]+)/g,
+  // 裸網址自動轉超連結（排除標點尾巴）
+  html = html.replace(/(?<!href=")(https?:\/\/[^\s<>"'()，。,！!？?；;：:\]\s]+)/g,
     '<a href="$1" target="_blank" rel="noopener">$1</a>');
 
-  // 換行也要保留
+  // 換行保留
   return html.replace(/\n/g, "<br>");
 }
 
